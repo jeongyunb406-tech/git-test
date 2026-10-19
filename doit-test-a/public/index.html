@@ -1,184 +1,156 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>박정윤 할일</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 40px 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
-      background: orange;;
-      color: #222;
-    }
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    }
-    h1 { margin: 0 0 4px; font-size: 24px; }
-    .date { color: #888; font-size: 14px; margin-bottom: 20px; }
-    #form { display: flex; gap: 8px; margin-bottom: 16px; }
-    .inline-form { display: flex; gap: 8px; margin: 0; }
-    .edit-form { flex: 1; align-items: center; }
-    input[type="text"] {
-      flex: 1;
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 15px;
-    }
-    button {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      background: #4f46e5;
-      color: #fff;
-      font-size: 15px;
-      cursor: pointer;
-    }
-    ul { list-style: none; margin: 0; padding: 0; }
-    li {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 4px;
-      border-bottom: 1px solid #eee;
-    }
-    li span { flex: 1; word-break: break-all; }
-    li .edit-input {
-      flex: 1;
-      padding: 6px 8px;
-      font-size: 15px;
-    }
-    .btn-sm {
-      padding: 6px 10px;
-      font-size: 13px;
-      white-space: nowrap;
-    }
-    .edit { background: #64748b; }
-    .edit:hover { background: #475569; }
-    .delete { background: #e11d48; }
-    .delete:hover { background: #be123c; }
-    .empty { text-align: center; color: #aaa; padding: 20px 0; }
-    .error { color: #e11d48; font-size: 13px; margin: -8px 0 12px; }
-    .count { margin-top: 12px; font-size: 13px; color: #888; text-align: right; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>박정윤 할일</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 40px 16px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: orange;
+            color: #222;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+        h1 { margin: 0 4px 4px 4px; font-size: 24px; }
+        .date { color: #888; font-size: 14px; margin-bottom: 20px; margin-left: 4px; }
+        form { display: flex; gap: 8px; margin-bottom: 16px; }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+        button {
+            padding: 10px 16px;
+            background: #5850ec;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        button:hover { background: #4338ca; }
+        .todo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 4px;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+        }
+        .todo-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            word-break: break-all;
+        }
+        .todo-item.completed span {
+            text-decoration: line-through;
+            color: #aaa;
+        }
+        .delete-btn {
+            background: #ef4444;
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+        .delete-btn:hover { background: #dc2626; }
+        .empty {
+            text-align: center;
+            color: #888;
+            margin-top: 30px;
+            font-size: 15px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>박정윤 할일</h1>
-    <div class="date" id="date"></div>
 
-    <form id="form" action="/todo" method="post">
-      <input type="text" id="input" name="text" placeholder="할일을 입력하세요" autocomplete="off" required>
-      <button type="submit">추가</button>
-    </form>
-    <div class="error" id="error" hidden></div>
+    <div class="container">
+        <h1>박정윤 할일</h1>
+        <div class="date" id="current-date"></div>
 
-    <ul id="list"></ul>
-    <div class="count" id="count"></div>
-  </div>
+        <form id="todo-form">
+            <input type="text" id="todo-input" placeholder="할일을 입력하세요" autocomplete="off" required>
+            <button type="submit">추가</button>
+        </form>
 
-  <script>
-    const list = document.getElementById('list');
-    const count = document.getElementById('count');
-    const errorEl = document.getElementById('error');
+        <div id="todo-list"></div>
+    </div>
 
-    document.getElementById('date').textContent = new Date().toLocaleDateString('ko-KR', {
-      year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
-    });
+    <script>
+        // 날짜 표시
+        const dateEl = document.getElementById('current-date');
+        const today = new Date();
+        const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+        dateEl.textContent = today.toLocaleDateString('ko-KR', options);
 
-    // method-override용 form 생성: POST {action}?_method={method}
-    function createForm(action, method, className) {
-      const f = document.createElement('form');
-      f.className = className || 'inline-form';
-      f.method = 'post';
-      f.action = method === 'POST' ? action : `${action}?_method=${method}`;
-      return f;
-    }
+        // LocalStorage를 이용한 할 일 관리
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
 
-    function render(todos) {
-      list.innerHTML = '';
+        const todoForm = document.getElementById('todo-form');
+        const todoInput = document.getElementById('todo-input');
+        const todoList = document.getElementById('todo-list');
 
-      if (todos.length === 0) {
-        list.innerHTML = '<li class="empty">오늘 할일이 없습니다</li>';
-      }
+        function saveAndRender() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+            renderTodos();
+        }
 
-      todos.forEach((todo) => {
-        const li = document.createElement('li');
+        function renderTodos() {
+            todoList.innerHTML = '';
+            if (todos.length === 0) {
+                todoList.innerHTML = '<div class="empty">오늘 할일이 없습니다</div>';
+                return;
+            }
 
-        const span = document.createElement('span');
-        span.textContent = todo.text;
+            todos.forEach((todo, index) => {
+                const item = document.createElement('div');
+                item.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+                
+                item.innerHTML = `
+                    <div class="todo-left">
+                        <input type="checkbox" ${todo.completed ? 'checked' : ''} onclick="toggleTodo(${index})">
+                        <span>${todo.text}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteTodo(${index})">삭제</button>
+                `;
+                todoList.appendChild(item);
+            });
+        }
 
-        const edit = document.createElement('button');
-        edit.type = 'button';
-        edit.className = 'btn-sm edit';
-        edit.textContent = '수정';
-        edit.addEventListener('click', () => startEdit(li, todo, todos));
+        todoForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = todoInput.value.trim();
+            if (!text) return;
 
-        // 삭제: DELETE /todo/[id]
-        const delForm = createForm(`/todo/${todo.id}`, 'DELETE');
-        const del = document.createElement('button');
-        del.type = 'submit';
-        del.className = 'btn-sm delete';
-        del.textContent = '삭제';
-        delForm.appendChild(del);
+            todos.push({ text: text, completed: false });
+            todoInput.value = '';
+            saveAndRender();
+        });
 
-        li.append(span, edit, delForm);
-        list.appendChild(li);
-      });
+        window.toggleTodo = function(index) {
+            todos[index].completed = !todos[index].completed;
+            saveAndRender();
+        }
 
-      count.textContent = todos.length ? `전체 ${todos.length}` : '';
-    }
+        window.deleteTodo = function(index) {
+            todos.splice(index, 1);
+            saveAndRender();
+        }
 
-    // 수정: PUT /todo/[id]  (text=...)
-    function startEdit(li, todo, todos) {
-      const editForm = createForm(`/todo/${todo.id}`, 'PUT', 'inline-form edit-form');
-
-      const editInput = document.createElement('input');
-      editInput.type = 'text';
-      editInput.name = 'text';
-      editInput.className = 'edit-input';
-      editInput.value = todo.text;
-      editInput.required = true;
-      editInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') render(todos);
-      });
-
-      const saveBtn = document.createElement('button');
-      saveBtn.type = 'submit';
-      saveBtn.className = 'btn-sm';
-      saveBtn.textContent = '저장';
-
-      const cancelBtn = document.createElement('button');
-      cancelBtn.type = 'button';
-      cancelBtn.className = 'btn-sm edit';
-      cancelBtn.textContent = '취소';
-      cancelBtn.addEventListener('click', () => render(todos));
-
-      editForm.append(editInput, saveBtn, cancelBtn);
-      li.replaceChildren(editForm);
-      editInput.focus();
-    }
-
-    // 목록 조회: GET /todo  → [{ id, text }, ...]
-    fetch('/todo')
-      .then((res) => {
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        return res.json();
-      })
-      .then(render)
-      .catch((err) => {
-        errorEl.textContent = `목록 불러오기 실패: ${err.message}`;
-        errorEl.hidden = false;
-        render([]);
-      });
-  </script>
+        // 초기 렌더링
+        renderTodos();
+    </script>
 </body>
 </html>
